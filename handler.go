@@ -1,7 +1,7 @@
 package icecreamx
 
 import (
-    "./proxy"
+    "github.com/RexGene/icecream-x/proxy"
 	"github.com/golang/protobuf/proto"
     "sync"
     "errors"

@@ -5,7 +5,7 @@ import (
     "log"
     "sync"
     "time"
-    "./proxy"
+    "github.com/RexGene/icecream-x/proxy"
 )
 
 const (
