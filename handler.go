@@ -1,8 +1,8 @@
 package icecreamx
 
 import (
-    "github.com/RexGene/icecream-x/proxy"
-	"github.com/golang/protobuf/proto"
+    "github.com/RexGene/icecreamx/proxy"
+    "github.com/golang/protobuf/proto"
     "sync"
     "errors"
 )
@@ -20,7 +20,7 @@ type handleNode struct {
 
 type Handler struct {
     sync.RWMutex
-	handlerMap   map[uint] *handleNode
+    handlerMap   map[uint] *handleNode
 }
 
 func NewHandler() *Handler {

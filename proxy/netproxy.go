@@ -1,7 +1,7 @@
 package proxy
 
 import (
-	"github.com/golang/protobuf/proto"
+    "github.com/golang/protobuf/proto"
     "net"
     "log"
 )
@@ -49,7 +49,7 @@ func (self *NetProxy) Stop() {
 }
 
 func (self *NetProxy) read_execute() {
-	for self.isRunning {
+    for self.isRunning {
         var buffer *DataBuffer
         if self.buffer == nil {
             buffer = self.buffer
@@ -58,8 +58,8 @@ func (self *NetProxy) read_execute() {
             buffer = NewDataBufferByData(make([]byte, BUFFER_SIZE))
         }
 
-		size, err := self.conn.Read(buffer.GetDataTail())
-		if err != nil {
+        size, err := self.conn.Read(buffer.GetDataTail())
+        if err != nil {
             log.Println("[!]", err)
             continue
         }

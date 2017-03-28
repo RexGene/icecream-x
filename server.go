@@ -5,7 +5,8 @@ import (
     "log"
     "sync"
     "time"
-    "github.com/RexGene/icecream-x/proxy"
+    "github.com/RexGene/icecreamx/proxy"
+    "github.com/golang/protobuf/proto"
 )
 
 const (
@@ -63,10 +64,6 @@ func (self *Server) Stop() {
     self.waitGroup.Wait()
 }
 
-func (self *Server) GetHandler() *Handler {
-    return self.handler
-}
-
 func (self *Server) PushCloseNotify(v interface{}) {
     if self.isRunning {
         self.chRemoveClient <- v
@@ -85,7 +82,7 @@ func (self *Server) listen_execute() {
     defer listener.Close()
     self.listener = listener
 
-	for self.isRunning {
+    for self.isRunning {
         conn, err := listener.Accept()
         if err == nil {
             clientProxy := proxy.NewClientProxy(conn, self, self.handler)
@@ -97,7 +94,7 @@ func (self *Server) listen_execute() {
         } else {
             log.Println("[!]", err)
         }
-	}
+    }
 }
 
 func (self *Server) eventloop_execute() {
@@ -128,5 +125,16 @@ func (self *Server) getConnectionCount() uint {
     self.RUnlock()
 
     return count
+}
+
+func (self *Server) RegisterCommand(
+        id uint,
+        makeFunc func() proto.Message,
+        handleFunc func (*proxy.NetProxy, proto.Message)) {
+    self.handler.Register(id, makeFunc, handleFunc)
+}
+
+func (self *Server) Unregister(id uint) {
+    self.handler.Unregister(id)
 }
 
