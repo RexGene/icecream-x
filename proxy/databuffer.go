@@ -1,4 +1,4 @@
-package endpoint
+package proxy
 
 import (
     "errors"
@@ -27,8 +27,19 @@ func NewDataBufferByData(data []byte) *DataBuffer {
     }
 }
 
+func NewDataBufferAndCopyData(size uint, data []byte) *DataBuffer {
+    buffer := &DataBuffer {
+        data : make([]byte, size),
+    }
+
+    copy(buffer.data, data)
+    buffer.writeOffset = len(data)
+
+    return buffer
+}
+
 func (self *DataBuffer) GetData() []byte {
-    return self.data
+    return self.data[self.readOffset:self.writeOffset]
 }
 
 func (self *DataBuffer) GetDataHead() []byte {
@@ -75,7 +86,7 @@ func (self *DataBuffer) GetWriteOffset() int {
     return self.writeOffset
 }
 
-func (self *DataBuffer) GetReadBuffer() []byte {
+func (self *DataBuffer) GetReadData() []byte {
     return self.data[:self.readOffset]
 }
 
