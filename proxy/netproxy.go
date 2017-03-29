@@ -51,7 +51,7 @@ func (self *NetProxy) Stop() {
 func (self *NetProxy) read_execute() {
     for self.isRunning {
         var buffer *DataBuffer
-        if self.buffer == nil {
+        if self.buffer != nil {
             buffer = self.buffer
             self.buffer = nil
         } else {
