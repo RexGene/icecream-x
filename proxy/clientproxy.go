@@ -13,13 +13,14 @@ type ClientProxy struct {
     recvicer ICloseNotifyRecvicer
 }
 
-func NewClientProxy(conn net.Conn, recvicer ICloseNotifyRecvicer, handle IHandler) *ClientProxy {
+func NewClientProxy(conn net.Conn, recvicer ICloseNotifyRecvicer, parser IParser) *ClientProxy {
     proxy :=  &ClientProxy {
         recvicer : recvicer,
     }
 
     proxy.isRunning = false
     proxy.conn = conn
+    proxy.parser = parser
 
     return proxy
 }

@@ -6,7 +6,7 @@ import (
     "log"
 )
 
-type IHandler interface {
+type IParser interface {
     ParseAndHandle(proxy *NetProxy, cmdId uint, data []byte) error
 }
 
@@ -17,7 +17,7 @@ const (
 type NetProxy struct {
    conn net.Conn
    buffer *DataBuffer
-   handler IHandler
+   parser IParser
    isRunning bool
 }
 
@@ -91,7 +91,7 @@ L:
         dataLen := buffer.GetDataLen()
         if dataLen == 0 {
             executeData := buffer.GetReadData()
-            err = self.handler.ParseAndHandle(self, uint(header.CmdId), executeData[HEADER_SIZE:])
+            err = self.parser.ParseAndHandle(self, uint(header.CmdId), executeData[HEADER_SIZE:])
             if err != nil {
                 log.Println("[!]", err)
             }
@@ -99,7 +99,7 @@ L:
             executeData := buffer.GetReadData()
             SurplusDate := buffer.GetData()
             buffer = NewDataBufferAndCopyData(BUFFER_SIZE, SurplusDate)
-            err = self.handler.ParseAndHandle(self, uint(header.CmdId), executeData[HEADER_SIZE:])
+            err = self.parser.ParseAndHandle(self, uint(header.CmdId), executeData[HEADER_SIZE:])
             if err != nil {
                 log.Println("[!]", err)
             }

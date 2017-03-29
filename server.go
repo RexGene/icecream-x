@@ -6,6 +6,7 @@ import (
     "sync"
     "time"
     "github.com/RexGene/icecreamx/proxy"
+    "github.com/RexGene/icecreamx/parser"
     "github.com/golang/protobuf/proto"
 )
 
@@ -19,7 +20,7 @@ type Server struct {
     isRunning       bool
     addr            string
     listener        net.Listener
-    handler         *Handler
+    parser         *parser.PbParser
     clientSet       map[interface{}] bool
     chRemoveClient  chan interface{}
 }
@@ -27,7 +28,7 @@ type Server struct {
 func NewServer(addr string) (*Server, error) {
     server := &Server {
         isRunning : false,
-        handler : NewHandler(),
+        parser : parser.NewPbParser(),
     }
 
     err := server.init(addr)
@@ -85,7 +86,7 @@ func (self *Server) listen_execute() {
     for self.isRunning {
         conn, err := listener.Accept()
         if err == nil {
-            clientProxy := proxy.NewClientProxy(conn, self, self.handler)
+            clientProxy := proxy.NewClientProxy(conn, self, self.parser)
             clientProxy.Start()
 
             self.Lock()
@@ -131,10 +132,10 @@ func (self *Server) RegisterCommand(
         id uint,
         makeFunc func() proto.Message,
         handleFunc func (*proxy.NetProxy, proto.Message)) {
-    self.handler.Register(id, makeFunc, handleFunc)
+    self.parser.Register(id, makeFunc, handleFunc)
 }
 
 func (self *Server) Unregister(id uint) {
-    self.handler.Unregister(id)
+    self.parser.Unregister(id)
 }
 

@@ -1,4 +1,4 @@
-package icecreamx
+package parser
 
 import (
     "github.com/RexGene/icecreamx/proxy"
@@ -8,9 +8,9 @@ import (
 )
 
 var (
-    ErrCmdIdAlreadyExist = errors.New("<Handler> cmdId already exist")
-    ErrCmdIdNotFound = errors.New("<Handle> cmdId not found")
-    ErrHandleFuncIsNil = errors.New("<Handler> handler func is nil")
+    ErrCmdIdAlreadyExist = errors.New("<PbParser> cmdId already exist")
+    ErrCmdIdNotFound = errors.New("<PbParser> cmdId not found")
+    ErrHandleFuncIsNil = errors.New("<PbParser> handler func is nil")
 )
 
 type handleNode struct {
@@ -18,18 +18,18 @@ type handleNode struct {
     handleFunc func (*proxy.NetProxy, proto.Message)
 }
 
-type Handler struct {
+type PbParser struct {
     sync.RWMutex
     handlerMap   map[uint] *handleNode
 }
 
-func NewHandler() *Handler {
-    return &Handler{
+func NewPbParser() *PbParser {
+    return &PbParser{
         handlerMap : make(map[uint] *handleNode),
     }
 }
 
-func (self *Handler) Register(
+func (self *PbParser) Register(
         id uint,
         makeFunc func() proto.Message,
         handleFunc func (*proxy.NetProxy, proto.Message)) error {
@@ -53,13 +53,13 @@ func (self *Handler) Register(
     return nil
 }
 
-func (self *Handler) Unregister(id uint) {
+func (self *PbParser) Unregister(id uint) {
     self.Lock()
     self.handlerMap[id] = nil
     self.Unlock()
 }
 
-func (self *Handler) ParseAndHandle(client *proxy.NetProxy, id uint, data []byte) error {
+func (self *PbParser) ParseAndHandle(client *proxy.NetProxy, id uint, data []byte) error {
     self.RLock()
     defer self.RUnlock()
 
