@@ -4,7 +4,6 @@ import (
     "net"
     "log"
     "sync"
-    "time"
     "github.com/RexGene/icecreamx/proxy"
     "github.com/RexGene/icecreamx/parser"
     "github.com/golang/protobuf/proto"
@@ -15,7 +14,8 @@ const (
 )
 
 type Server struct {
-    sync.RWMutex
+    clientSetMutex  sync.RWMutex
+    runningMutex    sync.RWMutex
     waitGroup       sync.WaitGroup
     isRunning       bool
     addr            string
@@ -28,6 +28,7 @@ type Server struct {
 func NewServer(addr string) (*Server, error) {
     server := &Server {
         isRunning : false,
+        listener : nil,
         parser : parser.NewPbParser(),
     }
 
@@ -51,24 +52,34 @@ func (self *Server) Start() {
 }
 
 func (self *Server) Stop() {
+    runningMutex := self.runningMutex
+    runningMutex.Lock()
     self.isRunning = false
-    self.listener.Close()
+    runningMutex.Unlock()
+
+    if self.listener != nil {
+        self.listener.Close()
+    }
 
     close(self.chRemoveClient)
 
-    self.RLock()
+    clientSetMutex := self.clientSetMutex
+    clientSetMutex.RLock()
     for clientProxy, _ := range self.clientSet {
         clientProxy.(*proxy.ClientProxy).Stop()
     }
-    self.RUnlock()
+    clientSetMutex.RUnlock()
 
     self.waitGroup.Wait()
 }
 
 func (self *Server) PushCloseNotify(v interface{}) {
+    runningMutex := self.runningMutex
+    runningMutex.RLock()
     if self.isRunning {
         self.chRemoveClient <- v
     }
+    runningMutex.RUnlock()
 }
 
 func (self *Server) listen_execute() {
@@ -83,18 +94,20 @@ func (self *Server) listen_execute() {
     defer listener.Close()
     self.listener = listener
 
+    log.Println("[*] listening...")
     for self.isRunning {
         conn, err := listener.Accept()
-        if err == nil {
-            clientProxy := proxy.NewClientProxy(conn, self, self.parser)
-            clientProxy.Start()
-
-            self.Lock()
-            self.clientSet[clientProxy] = true
-            self.Unlock()
-        } else {
+        if err != nil {
             log.Println("[!]", err)
         }
+
+        clientProxy := proxy.NewClientProxy(conn, self, self.parser)
+        clientProxy.Start()
+
+        clientSetMutex := self.clientSetMutex
+        clientSetMutex.Lock()
+        self.clientSet[clientProxy] = true
+        clientSetMutex.Unlock()
     }
 }
 
@@ -106,11 +119,11 @@ func (self *Server) eventloop_execute() {
         select {
             case clientProxy, isOK := <-self.chRemoveClient:
                 if isOK {
-                    self.Lock()
+                    clientSetMutex := self.clientSetMutex
+                    clientSetMutex.Lock()
                     delete(self.clientSet, clientProxy)
-                    self.Unlock()
+                    clientSetMutex.Unlock()
                 }
-            case <- time.After(time.Second):
         }
     }
 }
@@ -121,9 +134,10 @@ func (self *Server) init(addr string) error {
 }
 
 func (self *Server) getConnectionCount() uint {
-    self.RLock()
+    clientSetMutex := self.clientSetMutex
+    clientSetMutex.RLock()
     count := uint(len(self.clientSet))
-    self.RUnlock()
+    clientSetMutex.RUnlock()
 
     return count
 }

@@ -1,10 +1,15 @@
 package proxy
 
 import (
+    "github.com/RexGene/icecreamx/utils"
     "github.com/golang/protobuf/proto"
     "net"
     "log"
 )
+
+type ICloseNotifyRecvicer interface {
+    PushCloseNotify(interface{})
+}
 
 type IParser interface {
     ParseAndHandle(proxy *NetProxy, cmdId uint, data []byte) error
@@ -17,8 +22,9 @@ const (
 type NetProxy struct {
    conn net.Conn
    buffer *DataBuffer
-   parser IParser
    isRunning bool
+   parser IParser
+   recvicer ICloseNotifyRecvicer
 }
 
 func (self *NetProxy) Start() {
@@ -46,9 +52,18 @@ func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
 func (self *NetProxy) Stop() {
     self.isRunning = false
     self.conn.Close()
+
+    self.recvicer.PushCloseNotify(self)
 }
 
 func (self *NetProxy) read_execute() {
+    defer func() {
+        err := recover()
+        utils.PrintRecover(err)
+
+        self.Stop()
+    }()
+
     for self.isRunning {
         var buffer *DataBuffer
         if self.buffer != nil {
@@ -61,6 +76,7 @@ func (self *NetProxy) read_execute() {
         size, err := self.conn.Read(buffer.GetDataTail())
         if err != nil {
             log.Println("[!]", err)
+            self.Stop()
             continue
         }
 
