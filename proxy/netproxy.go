@@ -71,13 +71,14 @@ func (self *NetProxy) read_execute() {
         }
 
 L:
-        if buffer.GetDataLen() > HEADER_SIZE {
+        if buffer.GetDataLen() < HEADER_SIZE {
             self.buffer = buffer
             continue
         }
 
         header := CheckSumAndGetHeader(buffer.GetDataHead())
-        if header != nil {
+        if header == nil {
+            log.Println("[!] check sum error")
             buffer.Reset()
             continue
         }

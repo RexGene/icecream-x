@@ -2,7 +2,6 @@ package proxy
 
 import (
     "unsafe"
-    "log"
 )
 
 type Header struct {
@@ -27,7 +26,6 @@ func CheckSumAndGetHeader(buffer []byte) *Header {
 	}
 
 	if sumValue != 0 {
-		log.Println("[!] check sum invaild sumValue:", sumValue)
 		return nil
 	}
 
