@@ -44,7 +44,17 @@ func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
     copy(sendBuffer[HEADER_SIZE:], data)
 
     FillHeader(cmdId, sendBuffer)
-    self.conn.Write(sendBuffer)
+
+    offset := 0;
+    dataLen := len(sendBuffer)
+    for offset < dataLen {
+        wirteSize, err := self.conn.Write(sendBuffer[offset:])
+        if err != nil {
+            return err
+        }
+
+        offset += wirteSize
+    }
 
     return nil
 }
