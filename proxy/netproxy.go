@@ -68,9 +68,7 @@ func (self *NetProxy) Stop() {
 
 func (self *NetProxy) read_execute() {
     defer func() {
-        err := recover()
-        utils.PrintRecover(err)
-
+        utils.PrintRecover(recover())
         self.Stop()
     }()
 
