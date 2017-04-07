@@ -51,6 +51,17 @@ func (self *Server) Start() {
     }
 }
 
+func (self *Server) StartAndWait() {
+    if ! self.isRunning {
+        self.isRunning = true
+        self.clientSet = make(map[interface{}] bool)
+        self.chRemoveClient = make(chan interface{}, DEFUALT_CHANNEL_SIZE)
+
+        go self.listen_execute()
+        self.eventloop_execute()
+    }
+}
+
 func (self *Server) Stop() {
     runningMutex := self.runningMutex
     runningMutex.Lock()
