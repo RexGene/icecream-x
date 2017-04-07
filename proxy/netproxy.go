@@ -4,7 +4,9 @@ import (
     "github.com/RexGene/icecreamx/utils"
     "github.com/golang/protobuf/proto"
     "net"
+    "errors"
     "log"
+    "runtime/debug"
 )
 
 type ICloseNotifyRecvicer interface {
@@ -14,6 +16,10 @@ type ICloseNotifyRecvicer interface {
 type IParser interface {
     ParseAndHandle(proxy *NetProxy, cmdId uint, data []byte) error
 }
+
+var (
+    ErrCatchException = errors.New("<NetProxy> catch exception")
+)
 
 const (
     BUFFER_SIZE = 65536
@@ -66,6 +72,17 @@ func (self *NetProxy) Stop() {
     self.recvicer.PushCloseNotify(self)
 }
 
+func (self *NetProxy) read_parseAndHandle(cmdId uint, data []byte) (err error) {
+    defer func() {
+        if ex := recover(); ex != nil {
+            debug.PrintStack()
+            err = ErrCatchException
+        }
+    }()
+
+    return self.parser.ParseAndHandle(self, cmdId, data)
+}
+
 func (self *NetProxy) read_execute() {
     defer func() {
         utils.PrintRecover(recover())
@@ -116,7 +133,7 @@ L:
         dataLen := buffer.GetDataLen()
         if dataLen == 0 {
             executeData := buffer.GetReadData()
-            err = self.parser.ParseAndHandle(self, uint(header.CmdId), executeData[HEADER_SIZE:])
+            err = self.read_parseAndHandle(uint(header.CmdId), executeData[HEADER_SIZE:])
             if err != nil {
                 log.Println("[!]", err)
             }
@@ -124,7 +141,7 @@ L:
             executeData := buffer.GetReadData()
             SurplusDate := buffer.GetData()
             buffer = NewDataBufferAndCopyData(BUFFER_SIZE, SurplusDate)
-            err = self.parser.ParseAndHandle(self, uint(header.CmdId), executeData[HEADER_SIZE:])
+            err = self.read_parseAndHandle(uint(header.CmdId), executeData[HEADER_SIZE:])
             if err != nil {
                 log.Println("[!]", err)
             }
