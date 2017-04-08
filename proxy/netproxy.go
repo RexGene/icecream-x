@@ -70,7 +70,10 @@ func (self *NetProxy) Stop() {
     self.isRunning = false
     self.conn.Close()
 
-    self.recvicer.PushCloseNotify(self)
+    recvicer := self.recvicer
+    if recvicer != nil {
+        recvicer.PushCloseNotify(self)
+    }
 }
 
 func (self *NetProxy) SetCustomData(data interface{}) {

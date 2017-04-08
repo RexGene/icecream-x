@@ -160,7 +160,7 @@ func (self *Server) RegisterCommand(
     self.parser.Register(id, makeFunc, handleFunc)
 }
 
-func (self *Server) Unregister(id uint) {
+func (self *Server) UnregisterCommand(id uint) {
     self.parser.Unregister(id)
 }
 
