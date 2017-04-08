@@ -6,7 +6,6 @@ import (
 
 type ClientProxy struct {
     NetProxy
-    customData interface{}
 }
 
 func NewClientProxy(conn net.Conn, recvicer ICloseNotifyRecvicer, parser IParser) *ClientProxy {
@@ -21,10 +20,3 @@ func NewClientProxy(conn net.Conn, recvicer ICloseNotifyRecvicer, parser IParser
     return proxy
 }
 
-func (self *ClientProxy) SetCustomData(data interface{}) {
-    self.customData = data
-}
-
-func (self *ClientProxy) GetCustomData() interface{} {
-    return self.customData
-}

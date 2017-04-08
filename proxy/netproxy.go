@@ -30,6 +30,7 @@ type NetProxy struct {
    buffer *DataBuffer
    isRunning bool
    parser IParser
+   customData interface{}
    recvicer ICloseNotifyRecvicer
 }
 
@@ -70,6 +71,14 @@ func (self *NetProxy) Stop() {
     self.conn.Close()
 
     self.recvicer.PushCloseNotify(self)
+}
+
+func (self *NetProxy) SetCustomData(data interface{}) {
+    self.customData = data
+}
+
+func (self *NetProxy) GetCustomData() interface{} {
+    return self.customData
 }
 
 func (self *NetProxy) read_parseAndHandle(cmdId uint, data []byte) (err error) {
