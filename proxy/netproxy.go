@@ -110,13 +110,14 @@ func (self *NetProxy) GetCustomData() interface{} {
 func (self *NetProxy) read_parseAndHandle(cmdId uint, data []byte) (err error) {
 	defer func() {
 		if ex := recover(); ex != nil {
+			log.Println("[!] catch exception:", ex)
 			debug.PrintStack()
 			err = ErrCatchException
 		}
 	}()
 
 	now := time.Now()
-	if self.record.isValid(now, cmdId) {
+	if !self.record.isValid(now, cmdId) {
 		log.Println("[!] drop cmd id:", cmdId)
 		return ErrRequestTooFast
 	}
