@@ -1,19 +1,18 @@
 package proxy
 
 import (
-    "net"
+	"net"
 )
 
 type ServerProxy struct {
-    NetProxy
+	NetProxy
 }
 
 func NewServerProxy(conn net.Conn, parser IParser) *ServerProxy {
-    proxy :=  &ServerProxy {}
-    proxy.isRunning = false
-    proxy.conn = conn
-    proxy.parser = parser
+	proxy := &ServerProxy{}
+	proxy.isRunning = false
+	proxy.conn = conn
+	proxy.parser = parser
 
-    return proxy
+	return proxy
 }
-

@@ -1,101 +1,100 @@
 package proxy
 
 import (
-    "errors"
+	"errors"
 )
 
 var (
-    ErrParamInvalid = errors.New("<DataBuffer> param invalid")
-    ErrOffsetOverflow = errors.New("<DataBuffer> offset overflow")
+	ErrParamInvalid   = errors.New("<DataBuffer> param invalid")
+	ErrOffsetOverflow = errors.New("<DataBuffer> offset overflow")
 )
 
 type DataBuffer struct {
-    data []byte
-    writeOffset int
-    readOffset int
+	data        []byte
+	writeOffset int
+	readOffset  int
 }
 
 func NewDataBuffer(size uint) *DataBuffer {
-    return &DataBuffer {
-        data : make([]byte, size),
-    }
+	return &DataBuffer{
+		data: make([]byte, size),
+	}
 }
 
 func NewDataBufferByData(data []byte) *DataBuffer {
-    return &DataBuffer {
-        data : data,
-    }
+	return &DataBuffer{
+		data: data,
+	}
 }
 
 func NewDataBufferAndCopyData(size uint, data []byte) *DataBuffer {
-    buffer := &DataBuffer {
-        data : make([]byte, size),
-    }
+	buffer := &DataBuffer{
+		data: make([]byte, size),
+	}
 
-    copy(buffer.data, data)
-    buffer.writeOffset = len(data)
+	copy(buffer.data, data)
+	buffer.writeOffset = len(data)
 
-    return buffer
+	return buffer
 }
 
 func (self *DataBuffer) GetData() []byte {
-    return self.data[self.readOffset:self.writeOffset]
+	return self.data[self.readOffset:self.writeOffset]
 }
 
 func (self *DataBuffer) GetDataHead() []byte {
-    return self.data[self.readOffset:]
+	return self.data[self.readOffset:]
 }
 
 func (self *DataBuffer) GetDataTail() []byte {
-    return self.data[self.writeOffset:]
+	return self.data[self.writeOffset:]
 }
 
 func (self *DataBuffer) ReadSize(size int) error {
-    if size < 0 {
-        return ErrParamInvalid
-    }
+	if size < 0 {
+		return ErrParamInvalid
+	}
 
-    value := self.readOffset + size
-    if value < self.readOffset || value > self.writeOffset {
-        return ErrOffsetOverflow
-    }
+	value := self.readOffset + size
+	if value < self.readOffset || value > self.writeOffset {
+		return ErrOffsetOverflow
+	}
 
-    self.readOffset = value
-    return nil
+	self.readOffset = value
+	return nil
 }
 
 func (self *DataBuffer) WriteSize(size int) error {
-    if size < 0 {
-        return ErrParamInvalid
-    }
+	if size < 0 {
+		return ErrParamInvalid
+	}
 
-    value := self.writeOffset + size
-    if value < self.writeOffset || value > len(self.data) {
-        return ErrOffsetOverflow
-    }
+	value := self.writeOffset + size
+	if value < self.writeOffset || value > len(self.data) {
+		return ErrOffsetOverflow
+	}
 
-    self.writeOffset = value
-    return nil
+	self.writeOffset = value
+	return nil
 }
 
 func (self *DataBuffer) GetReadOffset() int {
-    return self.readOffset
+	return self.readOffset
 }
 
 func (self *DataBuffer) GetWriteOffset() int {
-    return self.writeOffset
+	return self.writeOffset
 }
 
 func (self *DataBuffer) GetReadData() []byte {
-    return self.data[:self.readOffset]
+	return self.data[:self.readOffset]
 }
 
 func (self *DataBuffer) GetDataLen() int {
-    return self.writeOffset - self.readOffset
+	return self.writeOffset - self.readOffset
 }
 
 func (self *DataBuffer) Reset() {
-    self.writeOffset = 0
-    self.readOffset = 0
+	self.writeOffset = 0
+	self.readOffset = 0
 }
-

@@ -1,14 +1,14 @@
 package utils
 
 import (
-    "runtime/debug"
-    "log"
+	"log"
+	"runtime/debug"
 )
 
 func PrintRecover(e interface{}) interface{} {
-    if e != nil {
-        log.Println("[!] catch exception:", e)
-        debug.PrintStack()
-    }
-    return e
+	if e != nil {
+		log.Println("[!] catch exception:", e)
+		debug.PrintStack()
+	}
+	return e
 }
