@@ -27,28 +27,9 @@ const (
 	BUFFER_SIZE = 65536
 )
 
-type LastRecord struct {
-	lastTime  time.Time
-	lastCmdId uint
-}
-
-func (self *LastRecord) mark(now time.Time, cmdId uint) {
-	self.lastTime = now
-	self.lastCmdId = cmdId
-}
-
-func (self *LastRecord) isValid(now time.Time, cmdId uint) bool {
-	if now.Sub(self.lastTime) < 100*time.Microsecond {
-		return false
-	}
-
-	return true
-}
-
 type NetProxy struct {
 	conn       net.Conn
 	buffer     *DataBuffer
-	record     LastRecord
 	isRunning  bool
 	parser     IParser
 	customData interface{}
@@ -115,14 +96,6 @@ func (self *NetProxy) read_parseAndHandle(cmdId uint, data []byte) (err error) {
 			err = ErrCatchException
 		}
 	}()
-
-	now := time.Now()
-	if !self.record.isValid(now, cmdId) {
-		log.Println("[!] drop cmd id:", cmdId)
-		return ErrRequestTooFast
-	}
-
-	self.record.mark(now, cmdId)
 
 	return self.parser.ParseAndHandle(self, cmdId, data)
 }
