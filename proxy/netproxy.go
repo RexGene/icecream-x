@@ -7,7 +7,6 @@ import (
 	"log"
 	"net"
 	"runtime/debug"
-	"time"
 )
 
 type ICloseNotifyRecvicer interface {
@@ -37,12 +36,12 @@ type NetProxy struct {
 }
 
 func (self *NetProxy) Start() {
-	if !self.isRunning {
-		self.isRunning = true
-		go self.read_execute()
+	if self.isRunning {
+		return
 	}
 
-	time.Now()
+	self.isRunning = true
+	go self.read_execute()
 }
 
 func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
@@ -71,6 +70,10 @@ func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
 }
 
 func (self *NetProxy) Stop() {
+	if !self.isRunning {
+		return
+	}
+
 	self.isRunning = false
 	self.conn.Close()
 
@@ -117,7 +120,9 @@ func (self *NetProxy) read_execute() {
 
 		size, err := self.conn.Read(buffer.GetDataTail())
 		if err != nil {
-			log.Println("[!]", err)
+			if err.Error() != "EOF" {
+				log.Println("[!]", err)
+			}
 			self.Stop()
 			continue
 		}
