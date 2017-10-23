@@ -20,7 +20,7 @@ type IParser interface {
 type INetProtocol interface {
 	Read([]byte) (int, error)
 	Write([]byte) (int, error)
-	Close()
+	Close() error
 }
 
 var (
@@ -83,7 +83,7 @@ func (self *NetProxy) Stop() {
 	}
 
 	self.isRunning = false
-	self.netProtocol.Stop()
+	self.netProtocol.Close()
 	// self.conn.Close()
 
 	recvicer := self.recvicer

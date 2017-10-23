@@ -1,11 +1,12 @@
 package net_protocol
 
-import (
-	"net"
-)
+import ()
 
 type WebSocket struct {
-	conn net.Conn
+}
+
+func NewWebSocket() *WebSocket {
+	return &WebSocket{}
 }
 
 func (self *WebSocket) Read(data []byte) (int, error) {
@@ -14,4 +15,8 @@ func (self *WebSocket) Read(data []byte) (int, error) {
 
 func (self *WebSocket) Write(data []byte) (int, error) {
 	return 0, nil
+}
+
+func (self *WebSocket) Close() error {
+	return nil
 }

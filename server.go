@@ -1,6 +1,7 @@
 package icecreamx
 
 import (
+	"github.com/RexGene/icecreamx/net_protocol"
 	"github.com/RexGene/icecreamx/parser"
 	"github.com/RexGene/icecreamx/proxy"
 	"github.com/golang/protobuf/proto"
@@ -112,7 +113,8 @@ func (self *Server) listen_execute() {
 			log.Println("[!]", err)
 		}
 
-		clientProxy := proxy.NewClientProxy(conn, self, self.parser)
+		clientProxy := proxy.NewClientProxy(conn, self, self.parser,
+			net_protocol.NewTcp(conn))
 		clientProxy.Start()
 
 		clientSetMutex := &self.clientSetMutex

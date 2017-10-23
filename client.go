@@ -1,6 +1,7 @@
 package icecreamx
 
 import (
+	"github.com/RexGene/icecreamx/net_protocol"
 	"github.com/RexGene/icecreamx/parser"
 	"github.com/RexGene/icecreamx/proxy"
 	"github.com/golang/protobuf/proto"
@@ -24,7 +25,8 @@ func (self *Client) Connect(addr string) (*proxy.ServerProxy, error) {
 		return nil, err
 	}
 
-	serverProxy := proxy.NewServerProxy(conn, self.parser)
+	serverProxy := proxy.NewServerProxy(conn, self.parser,
+		net_protocol.NewTcp(conn))
 	serverProxy.Start()
 	self.serverProxy = serverProxy
 
