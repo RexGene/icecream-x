@@ -20,3 +20,7 @@ func (self *WebSocket) Write(data []byte) (int, error) {
 func (self *WebSocket) Close() error {
 	return nil
 }
+
+func Listen(addr string) (*WebSocket, error) {
+	return nil, nil
+}

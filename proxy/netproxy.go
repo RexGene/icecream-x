@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"errors"
+	"github.com/RexGene/icecreamx/net_protocol"
 	"github.com/RexGene/icecreamx/utils"
 	"github.com/golang/protobuf/proto"
 	"log"
@@ -37,7 +38,7 @@ type NetProxy struct {
 	buffer      *DataBuffer
 	isRunning   bool
 	parser      IParser
-	netProtocol INetProtocol
+	netProtocol net_protocol.INetProtocol
 	customData  interface{}
 	recvicer    ICloseNotifyRecvicer
 }

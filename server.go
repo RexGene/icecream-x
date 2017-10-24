@@ -6,12 +6,11 @@ import (
 	"github.com/RexGene/icecreamx/proxy"
 	"github.com/golang/protobuf/proto"
 	"log"
-	"net"
 	"sync"
 )
 
 const (
-	DEFUALT_CHANNEL_SIZE = 32
+	DEFUALT_CHANNEL_SIZE = 10240
 )
 
 type Server struct {
@@ -20,16 +19,17 @@ type Server struct {
 	waitGroup      sync.WaitGroup
 	isRunning      bool
 	addr           string
-	listener       net.Listener
+	listener       net_protocol.IListener
 	parser         *parser.PbParser
-	clientSet      map[interface{}]bool
+	clientSet      map[interface{}]struct{}
 	chRemoveClient chan interface{}
 }
 
-func NewServer(addr string) (*Server, error) {
+func NewServer(addr string,
+	listener net_protocol.IListener) (*Server, error) {
 	server := &Server{
 		isRunning: false,
-		listener:  nil,
+		listener:  listener,
 		parser:    parser.NewPbParser(),
 	}
 
@@ -44,7 +44,7 @@ func NewServer(addr string) (*Server, error) {
 func (self *Server) Start() {
 	if !self.isRunning {
 		self.isRunning = true
-		self.clientSet = make(map[interface{}]bool)
+		self.clientSet = make(map[interface{}]struct{})
 		self.chRemoveClient = make(chan interface{}, DEFUALT_CHANNEL_SIZE)
 
 		go self.listen_execute()
@@ -55,7 +55,7 @@ func (self *Server) Start() {
 func (self *Server) StartAndWait() {
 	if !self.isRunning {
 		self.isRunning = true
-		self.clientSet = make(map[interface{}]bool)
+		self.clientSet = make(map[interface{}]struct{})
 		self.chRemoveClient = make(chan interface{}, DEFUALT_CHANNEL_SIZE)
 
 		go self.listen_execute()
@@ -98,30 +98,17 @@ func (self *Server) listen_execute() {
 	self.waitGroup.Add(1)
 	defer self.waitGroup.Done()
 
-	listener, err := net.Listen("tcp", self.addr)
-	if err != nil {
-		log.Println("[-]", err)
-		return
-	}
-	defer listener.Close()
-	self.listener = listener
-
 	log.Println("[*] listening...")
-	for self.isRunning {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println("[!]", err)
-		}
-
-		clientProxy := proxy.NewClientProxy(conn, self, self.parser,
-			net_protocol.NewTcp(conn))
+	onNewConn := func(np net_protocol.INetProtocol) {
+		clientProxy := proxy.NewClientProxy(np, self, self.parser)
 		clientProxy.Start()
 
 		clientSetMutex := &self.clientSetMutex
 		clientSetMutex.Lock()
-		self.clientSet[clientProxy] = true
+		self.clientSet[clientProxy] = struct{}{}
 		clientSetMutex.Unlock()
 	}
+	self.listener.Listen(self.addr, onNewConn)
 }
 
 func (self *Server) eventloop_execute() {
