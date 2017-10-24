@@ -39,7 +39,7 @@ type TcpListener struct {
 	listener  net.Listener
 }
 
-func (self *TcpListener) NewTcpListener() *TcpListener {
+func NewTcpListener() *TcpListener {
 	return &TcpListener{
 		isRunning: false,
 	}
