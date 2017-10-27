@@ -1,7 +1,8 @@
 package net_protocol
 
 import (
-	"golang.org/x/net/websocket"
+	websocket "github.com/RexGene/websocket-go"
+	"log"
 	"net/http"
 	"time"
 )
