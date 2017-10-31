@@ -2,7 +2,6 @@ package net_protocol
 
 import (
 	websocket "github.com/RexGene/websocket-go"
-	"log"
 	"net/http"
 	"time"
 )

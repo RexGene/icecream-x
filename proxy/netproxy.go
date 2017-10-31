@@ -5,6 +5,7 @@ import (
 	"github.com/RexGene/icecreamx/net_protocol"
 	"github.com/RexGene/icecreamx/utils"
 	"github.com/golang/protobuf/proto"
+	"io"
 	"log"
 	"net"
 	"runtime/debug"
@@ -66,7 +67,6 @@ func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
 	offset := 0
 	dataLen := len(sendBuffer)
 	for offset < dataLen {
-		// wirteSize, err := self.conn.Write(sendBuffer[offset:])
 		wirteSize, err := self.netProtocol.Write(sendBuffer[offset:])
 		if err != nil {
 			return err
@@ -85,7 +85,6 @@ func (self *NetProxy) Stop() {
 
 	self.isRunning = false
 	self.netProtocol.Close()
-	// self.conn.Close()
 
 	recvicer := self.recvicer
 	if recvicer != nil {
@@ -128,10 +127,9 @@ func (self *NetProxy) read_execute() {
 			buffer = NewDataBufferByData(make([]byte, BUFFER_SIZE))
 		}
 
-		//size, err := self.conn.Read(buffer.GetDataTail())
 		size, err := self.netProtocol.Read(buffer.GetDataTail())
 		if err != nil {
-			if err.Error() != "EOF" {
+			if err != io.EOF {
 				log.Println("[!]", err)
 			}
 			self.Stop()

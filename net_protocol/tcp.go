@@ -21,7 +21,6 @@ func NewTcp(conn net.Conn) *Tcp {
 }
 
 func (self *Tcp) Read(data []byte) (int, error) {
-
 	return self.conn.Read(data)
 }
 
