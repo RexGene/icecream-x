@@ -78,6 +78,26 @@ func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
 	return nil
 }
 
+func (self *NetProxy) SendData(cmdId uint, data []byte) error {
+	sendBuffer := make([]byte, len(data)+HEADER_SIZE)
+	copy(sendBuffer[HEADER_SIZE:], data)
+
+	FillHeader(cmdId, sendBuffer)
+
+	offset := 0
+	dataLen := len(sendBuffer)
+	for offset < dataLen {
+		wirteSize, err := self.netProtocol.Write(sendBuffer[offset:])
+		if err != nil {
+			return err
+		}
+
+		offset += wirteSize
+	}
+
+	return nil
+}
+
 func (self *NetProxy) Stop() {
 	if !self.isRunning {
 		return
