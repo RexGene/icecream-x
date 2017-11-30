@@ -61,3 +61,36 @@ func (self *WebSocketListener) Listen(addr string, handler func(INetProtocol)) e
 func (self *WebSocketListener) Close() error {
 	return self.server.Close()
 }
+
+type WebSocketSecureListener struct {
+	server      *http.Server
+	crtFilePath string
+	keyFilePath string
+}
+
+func NewWebSocketSecureListener(crtFilePath, keyFilePath string) *WebSocketSecureListener {
+	return &WebSocketSecureListener{
+		crtFilePath: crtFilePath,
+		keyFilePath: keyFilePath,
+	}
+}
+
+func (self *WebSocketSecureListener) Listen(addr string, handler func(INetProtocol)) error {
+	onHandle := func(conn *websocket.Conn) {
+		handler(NewWebSocket(conn))
+	}
+
+	s := &http.Server{
+		Addr:           addr,
+		Handler:        websocket.Handler(onHandle),
+		ReadTimeout:    READ_TIMEOUT_S * time.Second,
+		WriteTimeout:   WRITE_TIMEOUT_S * time.Second,
+		MaxHeaderBytes: MAX_HEADER_BYTES,
+	}
+	self.server = s
+	return s.ListenAndServeTLS(self.crtFilePath, self.keyFilePath)
+}
+
+func (self *WebSocketSecureListener) Close() error {
+	return self.server.Close()
+}
