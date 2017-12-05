@@ -185,6 +185,7 @@ func (self *NetProxy) read_execute() {
 		if err != nil {
 			log.Println("[!] header.Len invalid:", header.Len)
 			buffer.Reset()
+			continue
 		}
 
 		dataLen = buffer.GetDataLen()
