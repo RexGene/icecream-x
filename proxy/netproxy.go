@@ -207,3 +207,7 @@ func (self *NetProxy) read_execute() {
 		}
 	}
 }
+
+func (self *NetProxy) GetRemoteAddr() net.Addr {
+	return self.conn.RemoteAddr()
+}
