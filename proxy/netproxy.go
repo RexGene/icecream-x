@@ -19,12 +19,6 @@ type IParser interface {
 	ParseAndHandle(proxy *NetProxy, cmdId uint, data []byte) error
 }
 
-type INetProtocol interface {
-	Read([]byte) (int, error)
-	Write([]byte) (int, error)
-	Close() error
-}
-
 var (
 	ErrCatchException = errors.New("<NetProxy> catch exception")
 	ErrRequestTooFast = errors.New("<NetProxy> request too fast")
@@ -209,5 +203,5 @@ func (self *NetProxy) read_execute() {
 }
 
 func (self *NetProxy) GetRemoteAddr() net.Addr {
-	return self.conn.RemoteAddr()
+	return self.netProtocol.GetRemoteAddr()
 }

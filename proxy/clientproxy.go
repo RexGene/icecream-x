@@ -1,12 +1,14 @@
 package proxy
 
-import ()
+import (
+	"github.com/RexGene/icecreamx/net_protocol"
+)
 
 type ClientProxy struct {
 	NetProxy
 }
 
-func NewClientProxy(netProtocol INetProtocol, recvicer ICloseNotifyRecvicer,
+func NewClientProxy(netProtocol net_protocol.INetProtocol, recvicer ICloseNotifyRecvicer,
 	parser IParser) *ClientProxy {
 	proxy := &ClientProxy{}
 

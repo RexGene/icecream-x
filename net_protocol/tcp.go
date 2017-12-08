@@ -28,6 +28,10 @@ func (self *Tcp) Write(data []byte) (int, error) {
 	return self.conn.Write(data)
 }
 
+func (self *Tcp) GetRemoteAddr() net.Addr {
+	return self.conn.RemoteAddr()
+}
+
 func (self *Tcp) Close() error {
 	self.isRunning = false
 	return self.conn.Close()

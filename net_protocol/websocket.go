@@ -2,6 +2,7 @@ package net_protocol
 
 import (
 	websocket "github.com/RexGene/websocket-go"
+	"net"
 	"net/http"
 	"time"
 )
@@ -32,6 +33,10 @@ func (self *WebSocket) Write(data []byte) (int, error) {
 
 func (self *WebSocket) Close() error {
 	return self.conn.Close()
+}
+
+func (self *WebSocket) GetRemoteAddr() net.Addr {
+	return self.conn.RemoteAddr()
 }
 
 type WebSocketListener struct {

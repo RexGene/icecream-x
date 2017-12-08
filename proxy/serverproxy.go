@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"github.com/RexGene/icecreamx/net_protocol"
 	"net"
 )
 
@@ -9,7 +10,7 @@ type ServerProxy struct {
 }
 
 func NewServerProxy(conn net.Conn, parser IParser,
-	netProtocol INetProtocol) *ServerProxy {
+	netProtocol net_protocol.INetProtocol) *ServerProxy {
 	proxy := &ServerProxy{}
 	proxy.isRunning = false
 	proxy.conn = conn
