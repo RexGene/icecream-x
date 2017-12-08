@@ -1,14 +1,13 @@
 package net_protocol
 
-import (
-	"net"
-)
+import ()
 
 type INetProtocol interface {
 	Read([]byte) (int, error)
 	Write([]byte) (int, error)
 	Close() error
-	GetRemoteAddr() net.Addr
+	GetRemoteAddr() string
+	GetLocalAddr() string
 }
 
 type IListener interface {
