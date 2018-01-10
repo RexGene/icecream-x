@@ -108,7 +108,11 @@ func (self *Server) listen_execute() {
 		self.clientSet[clientProxy] = struct{}{}
 		clientSetMutex.Unlock()
 	}
-	self.listener.Listen(self.addr, onNewConn)
+
+	err := self.listener.Listen(self.addr, onNewConn)
+	if err != nil {
+		log.Fatalln("[-]", err)
+	}
 }
 
 func (self *Server) eventloop_execute() {
