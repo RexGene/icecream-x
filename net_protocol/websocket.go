@@ -2,6 +2,7 @@ package net_protocol
 
 import (
 	websocket "github.com/RexGene/websocket-go"
+	// "golang.org/x/net/websocket"
 	"net/http"
 	"time"
 )
@@ -31,6 +32,10 @@ func (self *WebSocket) Write(data []byte) (int, error) {
 }
 
 func (self *WebSocket) Close() error {
+	body := self.conn.Request().Body
+	if body != nil {
+		body.Close()
+	}
 	return self.conn.Close()
 }
 
