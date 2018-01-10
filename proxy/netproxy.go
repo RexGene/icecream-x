@@ -150,9 +150,7 @@ func (self *NetProxy) read_execute() {
 			continue
 		}
 
-		log.Println("[?] local:", self.netProtocol.GetLocalAddr())
-		log.Println("[?] remote:", self.netProtocol.GetRemoteAddr())
-
+		log.Println("[?] ip:", self.GetRemoteAddr())
 		err = buffer.WriteSize(size)
 		if err != nil {
 			log.Println("[!]", err)
