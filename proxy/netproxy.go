@@ -163,7 +163,6 @@ func (self *NetProxy) read_execute() {
 			continue
 		}
 
-		log.Println("[?] ip:", self.GetRemoteAddr())
 		err = buffer.WriteSize(size)
 		if err != nil {
 			log.Println("[!]", err)
