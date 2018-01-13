@@ -15,21 +15,15 @@ type DataBuffer struct {
 	readOffset  int
 }
 
-func NewDataBuffer(size uint) *DataBuffer {
-	return &DataBuffer{
-		data: make([]byte, size),
-	}
-}
-
 func NewDataBufferByData(data []byte) *DataBuffer {
 	return &DataBuffer{
 		data: data,
 	}
 }
 
-func NewDataBufferAndCopyData(size uint, data []byte) *DataBuffer {
+func NewDataBufferAndCopyData(newBuffer []byte, data []byte) *DataBuffer {
 	buffer := &DataBuffer{
-		data: make([]byte, size),
+		data: newBuffer,
 	}
 
 	copy(buffer.data, data)

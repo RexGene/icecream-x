@@ -11,6 +11,10 @@ import (
 	"runtime/debug"
 )
 
+const (
+	BUFFER_SIZE = 65536
+)
+
 type ICloseNotifyRecvicer interface {
 	PushCloseNotify(interface{})
 }
@@ -24,10 +28,6 @@ var (
 	ErrRequestTooFast = errors.New("<NetProxy> request too fast")
 )
 
-const (
-	BUFFER_SIZE = 65536
-)
-
 type NetProxy struct {
 	conn        net.Conn
 	buffer      *DataBuffer
@@ -36,11 +36,16 @@ type NetProxy struct {
 	netProtocol net_protocol.INetProtocol
 	customData  interface{}
 	recvicer    ICloseNotifyRecvicer
+	bufferMaker *DataBufferMaker
 }
 
 func (self *NetProxy) Start() {
 	if self.isRunning {
 		return
+	}
+
+	if self.bufferMaker == nil {
+		self.bufferMaker = NewDataBufferMaker(BUFFER_SIZE)
 	}
 
 	self.isRunning = true
@@ -138,7 +143,7 @@ func (self *NetProxy) read_execute() {
 			buffer = self.buffer
 			self.buffer = nil
 		} else {
-			buffer = NewDataBufferByData(make([]byte, BUFFER_SIZE))
+			buffer = NewDataBufferByData(self.bufferMaker.GetBuffer())
 		}
 
 		size, err := self.netProtocol.Read(buffer.GetDataTail())
@@ -167,7 +172,7 @@ func (self *NetProxy) read_execute() {
 		header := CheckSumAndGetHeader(buffer.GetDataHead())
 		if header == nil {
 			log.Println("[!] check sum error")
-			buffer.Reset()
+			self.bufferMaker.PutBuffer(buffer.GetReadData())
 			continue
 		}
 
@@ -179,21 +184,28 @@ func (self *NetProxy) read_execute() {
 		err = buffer.ReadSize(int(header.Len))
 		if err != nil {
 			log.Println("[!] header.Len invalid:", header.Len)
-			buffer.Reset()
+			self.bufferMaker.PutBuffer(buffer.GetReadData())
 			continue
 		}
 
 		dataLen = buffer.GetDataLen()
 		if dataLen == 0 {
 			executeData := buffer.GetReadData()
-			err = self.read_parseAndHandle(uint(header.CmdId), executeData[HEADER_SIZE:])
-			if err != nil {
-				log.Println("[!]", err, header.CmdId)
-			}
+
+			func() {
+				defer self.bufferMaker.PutBuffer(executeData)
+
+				err = self.read_parseAndHandle(uint(header.CmdId), executeData[HEADER_SIZE:])
+				if err != nil {
+					log.Println("[!]", err, header.CmdId)
+				}
+			}()
 		} else {
 			executeData := buffer.GetReadData()
 			SurplusDate := buffer.GetData()
-			buffer = NewDataBufferAndCopyData(BUFFER_SIZE, SurplusDate)
+			buffer = NewDataBufferAndCopyData(self.bufferMaker.GetBuffer(), SurplusDate)
+			self.bufferMaker.PutBuffer(executeData)
+
 			err = self.read_parseAndHandle(uint(header.CmdId), executeData[HEADER_SIZE:])
 			if err != nil {
 				log.Println("[!]", err, header.CmdId)
