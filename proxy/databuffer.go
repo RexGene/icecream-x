@@ -92,3 +92,7 @@ func (self *DataBuffer) Reset() {
 	self.writeOffset = 0
 	self.readOffset = 0
 }
+
+func (self *DataBuffer) GetOriginData() []byte {
+	return self.data
+}

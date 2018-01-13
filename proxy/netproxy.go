@@ -58,7 +58,10 @@ func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
 		return err
 	}
 
-	sendBuffer := make([]byte, len(data)+HEADER_SIZE)
+	newBuffer := self.bufferMaker.GetBuffer()
+	defer self.bufferMaker.PutBuffer(newBuffer)
+
+	sendBuffer = newBuffer[:len(data)+HEADER_SIZE]
 	copy(sendBuffer[HEADER_SIZE:], data)
 
 	FillHeader(cmdId, sendBuffer)
@@ -78,7 +81,10 @@ func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
 }
 
 func (self *NetProxy) SendData(cmdId uint, data []byte) error {
-	sendBuffer := make([]byte, len(data)+HEADER_SIZE)
+	newBuffer := self.bufferMaker.GetBuffer()
+	defer self.bufferMaker.PutBuffer(newBuffer)
+
+	sendBuffer = newBuffer[:len(data)+HEADER_SIZE]
 	copy(sendBuffer[HEADER_SIZE:], data)
 
 	FillHeader(cmdId, sendBuffer)
@@ -151,6 +157,8 @@ func (self *NetProxy) read_execute() {
 			if err != io.EOF {
 				log.Println("[!]", err)
 			}
+
+			self.bufferMaker.PutBuffer(buffer.GetOriginData())
 			self.Stop()
 			continue
 		}
@@ -159,6 +167,7 @@ func (self *NetProxy) read_execute() {
 		err = buffer.WriteSize(size)
 		if err != nil {
 			log.Println("[!]", err)
+			self.bufferMaker.PutBuffer(buffer.GetOriginData())
 			continue
 		}
 
@@ -172,7 +181,7 @@ func (self *NetProxy) read_execute() {
 		header := CheckSumAndGetHeader(buffer.GetDataHead())
 		if header == nil {
 			log.Println("[!] check sum error")
-			self.bufferMaker.PutBuffer(buffer.GetReadData())
+			self.bufferMaker.PutBuffer(buffer.GetOriginData())
 			continue
 		}
 
@@ -184,7 +193,7 @@ func (self *NetProxy) read_execute() {
 		err = buffer.ReadSize(int(header.Len))
 		if err != nil {
 			log.Println("[!] header.Len invalid:", header.Len)
-			self.bufferMaker.PutBuffer(buffer.GetReadData())
+			self.bufferMaker.PutBuffer(buffer.GetOriginData())
 			continue
 		}
 
@@ -193,7 +202,7 @@ func (self *NetProxy) read_execute() {
 			executeData := buffer.GetReadData()
 
 			func() {
-				defer self.bufferMaker.PutBuffer(executeData)
+				defer self.bufferMaker.PutBuffer(buffer.GetOriginData())
 
 				err = self.read_parseAndHandle(uint(header.CmdId), executeData[HEADER_SIZE:])
 				if err != nil {
@@ -203,15 +212,25 @@ func (self *NetProxy) read_execute() {
 		} else {
 			executeData := buffer.GetReadData()
 			SurplusDate := buffer.GetData()
-			buffer = NewDataBufferAndCopyData(self.bufferMaker.GetBuffer(), SurplusDate)
-			self.bufferMaker.PutBuffer(executeData)
 
-			err = self.read_parseAndHandle(uint(header.CmdId), executeData[HEADER_SIZE:])
-			if err != nil {
-				log.Println("[!]", err, header.CmdId)
-			}
+			oldBuffer := buffer
+			buffer = NewDataBufferAndCopyData(self.bufferMaker.GetBuffer(), SurplusDate)
+
+			func() {
+				defer self.bufferMaker.PutBuffer(oldBuffer.GetOriginData())
+
+				err = self.read_parseAndHandle(uint(header.CmdId), executeData[HEADER_SIZE:])
+				if err != nil {
+					log.Println("[!]", err, header.CmdId)
+				}
+			}()
 			goto L
 		}
+	}
+
+	if self.buffer != nil {
+		self.bufferMaker.PutBuffer(self.buffer.GetOriginData())
+		self.buffer = nil
 	}
 }
 
