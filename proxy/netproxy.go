@@ -61,7 +61,7 @@ func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
 	newBuffer := self.bufferMaker.GetBuffer()
 	defer self.bufferMaker.PutBuffer(newBuffer)
 
-	sendBuffer = newBuffer[:len(data)+HEADER_SIZE]
+	sendBuffer := newBuffer[:len(data)+HEADER_SIZE]
 	copy(sendBuffer[HEADER_SIZE:], data)
 
 	FillHeader(cmdId, sendBuffer)
@@ -84,7 +84,7 @@ func (self *NetProxy) SendData(cmdId uint, data []byte) error {
 	newBuffer := self.bufferMaker.GetBuffer()
 	defer self.bufferMaker.PutBuffer(newBuffer)
 
-	sendBuffer = newBuffer[:len(data)+HEADER_SIZE]
+	sendBuffer := newBuffer[:len(data)+HEADER_SIZE]
 	copy(sendBuffer[HEADER_SIZE:], data)
 
 	FillHeader(cmdId, sendBuffer)
