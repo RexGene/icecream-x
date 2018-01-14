@@ -18,15 +18,16 @@ const (
 )
 
 type Server struct {
-	clientSetMutex sync.RWMutex
-	runningMutex   sync.RWMutex
-	waitGroup      sync.WaitGroup
-	isRunning      bool
-	addr           string
-	listener       net_protocol.IListener
-	parser         *parser.PbParser
-	clientSet      map[interface{}]struct{}
-	chRemoveClient chan interface{}
+	clientSetMutex  sync.RWMutex
+	runningMutex    sync.RWMutex
+	waitGroup       sync.WaitGroup
+	isRunning       bool
+	addr            string
+	listener        net_protocol.IListener
+	parser          *parser.PbParser
+	clientSet       map[interface{}]struct{}
+	chRemoveClient  chan interface{}
+	dataBufferMaker *proxy.DataBufferMaker
 }
 
 func NewServer(addr string,
@@ -50,6 +51,7 @@ func (self *Server) Start() {
 		self.isRunning = true
 		self.clientSet = make(map[interface{}]struct{})
 		self.chRemoveClient = make(chan interface{}, DEFUALT_CHANNEL_SIZE)
+		self.dataBufferMaker = proxy.NewDataBufferMaker(BUFFER_SIZE)
 
 		go self.listen_execute()
 		go self.eventloop_execute()
@@ -105,7 +107,7 @@ func (self *Server) listen_execute() {
 	log.Println("[*] listening...")
 	onNewConn := func(np net_protocol.INetProtocol) {
 		clientProxy := proxy.NewClientProxy(np, self, self.parser)
-		clientProxy.Start(proxy.NewDataBufferMaker(BUFFER_SIZE))
+		clientProxy.Start(self.dataBufferMaker)
 
 		clientSetMutex := &self.clientSetMutex
 		clientSetMutex.Lock()
