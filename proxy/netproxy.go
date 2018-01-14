@@ -11,10 +11,6 @@ import (
 	"runtime/debug"
 )
 
-const (
-	BUFFER_SIZE = 65536
-)
-
 type ICloseNotifyRecvicer interface {
 	PushCloseNotify(interface{})
 }
@@ -39,14 +35,12 @@ type NetProxy struct {
 	bufferMaker *DataBufferMaker
 }
 
-func (self *NetProxy) Start() {
+func (self *NetProxy) Start(bufferMaker *DataBufferMaker) {
 	if self.isRunning {
 		return
 	}
 
-	if self.bufferMaker == nil {
-		self.bufferMaker = NewDataBufferMaker(BUFFER_SIZE)
-	}
+	self.bufferMaker = bufferMaker
 
 	self.isRunning = true
 	go self.read_execute()

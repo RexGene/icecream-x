@@ -13,6 +13,10 @@ const (
 	DEFUALT_CHANNEL_SIZE = 10240
 )
 
+const (
+	BUFFER_SIZE = 65536
+)
+
 type Server struct {
 	clientSetMutex sync.RWMutex
 	runningMutex   sync.RWMutex
@@ -101,7 +105,7 @@ func (self *Server) listen_execute() {
 	log.Println("[*] listening...")
 	onNewConn := func(np net_protocol.INetProtocol) {
 		clientProxy := proxy.NewClientProxy(np, self, self.parser)
-		clientProxy.Start()
+		clientProxy.Start(proxy.NewDataBufferMaker(BUFFER_SIZE))
 
 		clientSetMutex := &self.clientSetMutex
 		clientSetMutex.Lock()
