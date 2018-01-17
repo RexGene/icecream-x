@@ -16,20 +16,28 @@ const (
 	VERSION     = 1
 )
 
-func CheckSumAndGetHeader(buffer []byte) *Header {
-	header := (*Header)(unsafe.Pointer(&buffer[0]))
+func CheckSum(headerData []byte, data []byte) bool {
+	header := (*Header)(unsafe.Pointer(&headerData[0]))
+	if header.Len < uint16(len(headerData)) {
+		return false
+	}
 
-	buf := buffer[:header.Len]
+	buf := data[:(header.Len - uint16(len(headerData)))]
 	sumValue := byte(0)
+
+	for _, v := range headerData {
+		sumValue ^= v
+	}
+
 	for _, v := range buf {
 		sumValue ^= v
 	}
 
 	if sumValue != 0 {
-		return nil
+		return false
 	}
 
-	return header
+	return true
 }
 
 func FillHeader(cmdId uint, buffer []byte) {

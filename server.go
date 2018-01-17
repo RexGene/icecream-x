@@ -63,6 +63,7 @@ func (self *Server) StartAndWait() {
 		self.isRunning = true
 		self.clientSet = make(map[interface{}]struct{})
 		self.chRemoveClient = make(chan interface{}, DEFUALT_CHANNEL_SIZE)
+		self.dataBufferMaker = proxy.NewDataBufferMaker(BUFFER_SIZE)
 
 		go self.listen_execute()
 		self.eventloop_execute()
