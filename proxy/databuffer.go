@@ -13,11 +13,13 @@ type DataBuffer struct {
 	data        []byte
 	writeOffset int
 	readOffset  int
+	size        int
 }
 
-func NewDataBufferByData(data []byte) *DataBuffer {
+func NewDataBufferByData(data []byte, size int) *DataBuffer {
 	return &DataBuffer{
 		data: data,
+		size: size,
 	}
 }
 
@@ -91,6 +93,10 @@ func (self *DataBuffer) GetDataLen() int {
 func (self *DataBuffer) Reset() {
 	self.writeOffset = 0
 	self.readOffset = 0
+}
+
+func (self *DataBuffer) GetDataTailWithSize() []byte {
+	return self.data[self.writeOffset:self.size]
 }
 
 func (self *DataBuffer) GetOriginData() []byte {

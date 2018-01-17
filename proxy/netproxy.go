@@ -42,7 +42,7 @@ func (self *NetProxy) Start(bufferMaker *DataBufferMaker) {
 	}
 
 	self.bufferMaker = bufferMaker
-	self.headerBuffer = NewDataBufferByData(self.bufferMaker.GetBuffer(HEADER_SIZE))
+	self.headerBuffer = NewDataBufferByData(self.bufferMaker.GetBuffer(HEADER_SIZE), HEADER_SIZE)
 
 	self.isRunning = true
 	go self.read_execute()
@@ -143,11 +143,9 @@ func (self *NetProxy) read_execute() {
 
 	for self.isRunning {
 		if !self._readHeader() {
-			log.Println("[?] read head error")
 			continue
 		}
 
-		log.Println("[?] read head end")
 		self._readData()
 	}
 }
@@ -164,20 +162,19 @@ func (self *NetProxy) _readHeader() bool {
 	buffer := self.headerBuffer
 
 	for self.isRunning {
-		size, err := self.netProtocol.Read(buffer.GetDataTail())
+		size, err := self.netProtocol.Read(buffer.GetDataTailWithSize())
 		if err != nil {
 			if err != io.EOF {
 				log.Println("[!]", err)
 			}
 
-			log.Println("[?] err:", err, "size:", size)
+			log.Println("[1] err:", err, "size:", size)
 			buffer.Reset()
 			self.Stop()
 			return false
 		}
 
 		err = buffer.WriteSize(size)
-		log.Println("[?]", len(buffer.GetData()))
 		if err != nil {
 			log.Println("[!]", err)
 			buffer.Reset()
@@ -207,18 +204,29 @@ func (self *NetProxy) _readData() bool {
 	header := self._getHeader()
 	defer self.headerBuffer.Reset()
 	if header == nil {
-		log.Println("[?] header == nil")
 		return false
 	}
 
 	dataSize := uint(header.Len) - HEADER_SIZE
-	buffer := NewDataBufferByData(self.bufferMaker.GetBuffer(dataSize))
+
+	buffer := NewDataBufferByData(self.bufferMaker.GetBuffer(dataSize), int(dataSize))
 	defer self.bufferMaker.PutBuffer(buffer.GetOriginData())
 
 	for self.isRunning {
-		size, err := self.netProtocol.Read(buffer.GetDataTail())
+		if dataSize != 0 {
+			size, err := self.netProtocol.Read(buffer.GetDataTailWithSize())
+			if err != nil {
+				if err != io.EOF {
+					log.Println("[!]", err)
+				}
 
-		buffer.WriteSize(size)
+				log.Println("[!] err:", err, "size:", size)
+				self.Stop()
+				return false
+			}
+
+			buffer.WriteSize(size)
+		}
 
 		dataLen := uint(buffer.GetDataLen())
 		if dataLen < dataSize {
@@ -231,7 +239,7 @@ func (self *NetProxy) _readData() bool {
 			return false
 		}
 
-		err = self.read_parseAndHandle(uint(header.CmdId), executeData)
+		err := self.read_parseAndHandle(uint(header.CmdId), executeData)
 		if err != nil {
 			log.Println("[!]", err, header.CmdId)
 		}
