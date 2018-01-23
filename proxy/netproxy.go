@@ -168,7 +168,7 @@ func (self *NetProxy) _readHeader() bool {
 				log.Println("[!]", err)
 			}
 
-			log.Println("[1] err:", err, "size:", size)
+			log.Println("[!] err:", err, "size:", size)
 			buffer.Reset()
 			self.Stop()
 			return false
