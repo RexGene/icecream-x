@@ -47,6 +47,10 @@ func (self *WebSocket) GetLocalAddr() string {
 	return self.conn.LocalAddr().String()
 }
 
+func (self *WebSocket) Start(selector Selector) {
+	selector.StartAndWait()
+}
+
 type WebSocketListener struct {
 	server *http.Server
 }

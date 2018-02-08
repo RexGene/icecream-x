@@ -36,16 +36,27 @@ type NetProxy struct {
 	headerBuffer *DataBuffer
 }
 
+func (self *NetProxy) Setup(bufferMaker *DataBufferMaker) {
+	self.bufferMaker = bufferMaker
+	self.headerBuffer = NewDataBufferByData(self.bufferMaker.GetBuffer(HEADER_SIZE), HEADER_SIZE)
+}
+
 func (self *NetProxy) Start(bufferMaker *DataBufferMaker) {
 	if self.isRunning {
 		return
 	}
 
-	self.bufferMaker = bufferMaker
-	self.headerBuffer = NewDataBufferByData(self.bufferMaker.GetBuffer(HEADER_SIZE), HEADER_SIZE)
-
 	self.isRunning = true
 	go self.read_execute()
+}
+
+func (self *NetProxy) StartAndWait(bufferMaker *DataBufferMaker) {
+	if self.isRunning {
+		return
+	}
+
+	self.isRunning = true
+	self.read_execute()
 }
 
 func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {

@@ -1,6 +1,9 @@
 package net_protocol
 
-import ()
+type Selector interface {
+	Start()
+	StartAndWait()
+}
 
 type INetProtocol interface {
 	Read([]byte) (int, error)
@@ -8,6 +11,7 @@ type INetProtocol interface {
 	Close() error
 	GetRemoteAddr() string
 	GetLocalAddr() string
+	Start(selector Selector)
 }
 
 type IListener interface {

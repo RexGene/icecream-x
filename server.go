@@ -108,12 +108,14 @@ func (self *Server) listen_execute() {
 	log.Println("[*] listening...")
 	onNewConn := func(np net_protocol.INetProtocol) {
 		clientProxy := proxy.NewClientProxy(np, self, self.parser)
-		clientProxy.Start(self.dataBufferMaker)
 
 		clientSetMutex := &self.clientSetMutex
 		clientSetMutex.Lock()
 		self.clientSet[clientProxy] = struct{}{}
 		clientSetMutex.Unlock()
+
+		clientProxy.Setup(self.dataBufferMaker)
+		np.Start(clientProxy)
 	}
 
 	err := self.listener.Listen(self.addr, onNewConn)

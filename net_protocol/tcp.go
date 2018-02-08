@@ -41,6 +41,10 @@ func (self *Tcp) Close() error {
 	return self.conn.Close()
 }
 
+func (self *Tcp) Start(selector Selector) {
+	selector.Start()
+}
+
 type TcpListener struct {
 	isRunning bool
 	listener  net.Listener
