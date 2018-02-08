@@ -41,7 +41,7 @@ func (self *NetProxy) Setup(bufferMaker *DataBufferMaker) {
 	self.headerBuffer = NewDataBufferByData(self.bufferMaker.GetBuffer(HEADER_SIZE), HEADER_SIZE)
 }
 
-func (self *NetProxy) Start(bufferMaker *DataBufferMaker) {
+func (self *NetProxy) Start() {
 	if self.isRunning {
 		return
 	}
@@ -50,7 +50,7 @@ func (self *NetProxy) Start(bufferMaker *DataBufferMaker) {
 	go self.read_execute()
 }
 
-func (self *NetProxy) StartAndWait(bufferMaker *DataBufferMaker) {
+func (self *NetProxy) StartAndWait() {
 	if self.isRunning {
 		return
 	}
