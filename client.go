@@ -27,7 +27,9 @@ func (self *Client) Connect(addr string) (*proxy.ServerProxy, error) {
 
 	serverProxy := proxy.NewServerProxy(conn, self.parser,
 		net_protocol.NewTcp(conn))
-	serverProxy.Start(proxy.NewDataBufferMaker(BUFFER_SIZE))
+
+	serverProxy.Setup(proxy.NewDataBufferMaker(BUFFER_SIZE))
+	serverProxy.Start()
 	self.serverProxy = serverProxy
 
 	return serverProxy, nil
@@ -42,7 +44,8 @@ func (self *Client) ConnectWithDataBuffer(addr string,
 
 	serverProxy := proxy.NewServerProxy(conn, self.parser,
 		net_protocol.NewTcp(conn))
-	serverProxy.Start(dataBufferMaker)
+	serverProxy.Setup(proxy.NewDataBufferMaker(BUFFER_SIZE))
+	serverProxy.Start()
 	self.serverProxy = serverProxy
 
 	return serverProxy, nil
