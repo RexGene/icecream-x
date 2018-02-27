@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -40,6 +41,7 @@ func (self Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type WebSocket struct {
+	sync.Mutex
 	conn       *websocket.Conn
 	lastReader io.Reader
 }
@@ -73,6 +75,9 @@ func (self *WebSocket) Read(data []byte) (int, error) {
 }
 
 func (self *WebSocket) Write(data []byte) (int, error) {
+	self.Lock()
+	defer self.Unlock()
+
 	w, err := self.conn.NextWriter(websocket.BinaryMessage)
 	if err != nil {
 		return 0, err
