@@ -24,7 +24,7 @@ type Server struct {
 	isRunning       bool
 	addr            string
 	listener        net_protocol.IListener
-	parser          *parser.PbParser
+	parser          parser.IParser
 	clientSet       map[interface{}]struct{}
 	chRemoveClient  chan interface{}
 	dataBufferMaker *proxy.DataBufferMaker
@@ -56,6 +56,10 @@ func (self *Server) Start() {
 		go self.listen_execute()
 		go self.eventloop_execute()
 	}
+}
+
+func (self *Server) SetParser(parser parser.IParser) {
+	self.parser = parser
 }
 
 func (self *Server) StartAndWait() {

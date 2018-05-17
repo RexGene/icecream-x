@@ -1,35 +1,25 @@
 package parser
 
 import (
-	"errors"
+	"encoding/json"
 	"github.com/RexGene/icecreamx/proxy"
 	"github.com/golang/protobuf/proto"
+	"log"
 	"sync"
 )
 
-var (
-	ErrCmdIdAlreadyExist = errors.New("<PbParser> cmdId already exist")
-	ErrCmdIdNotFound     = errors.New("<PbParser> cmdId not found")
-	ErrHandleFuncIsNil   = errors.New("<PbParser> handler func is nil")
-)
-
-type handleNode struct {
-	makeFunc   func() proto.Message
-	handleFunc func(*proxy.NetProxy, proto.Message)
-}
-
-type PbParser struct {
+type JSonParser struct {
 	sync.RWMutex
 	handlerMap map[uint]*handleNode
 }
 
-func NewPbParser() *PbParser {
-	return &PbParser{
+func NewJSonParser() *JSonParser {
+	return &JSonParser{
 		handlerMap: make(map[uint]*handleNode),
 	}
 }
 
-func (self *PbParser) Register(
+func (self *JSonParser) Register(
 	id uint,
 	makeFunc func() proto.Message,
 	handleFunc func(*proxy.NetProxy, proto.Message)) error {
@@ -53,13 +43,13 @@ func (self *PbParser) Register(
 	return nil
 }
 
-func (self *PbParser) Unregister(id uint) {
+func (self *JSonParser) Unregister(id uint) {
 	self.Lock()
 	self.handlerMap[id] = nil
 	self.Unlock()
 }
 
-func (self *PbParser) ParseAndHandle(client *proxy.NetProxy, id uint, data []byte) error {
+func (self *JSonParser) ParseAndHandle(client *proxy.NetProxy, id uint, data []byte) error {
 	self.RLock()
 	defer self.RUnlock()
 
@@ -68,8 +58,9 @@ func (self *PbParser) ParseAndHandle(client *proxy.NetProxy, id uint, data []byt
 		return ErrCmdIdNotFound
 	}
 
+	log.Println("[!]", string(data))
 	msg := node.makeFunc()
-	if err := proto.Unmarshal(data, msg); err != nil {
+	if err := json.Unmarshal(data, msg); err != nil {
 		return err
 	}
 
@@ -77,6 +68,6 @@ func (self *PbParser) ParseAndHandle(client *proxy.NetProxy, id uint, data []byt
 	return nil
 }
 
-func (self *PbParser) Marshal(msg proto.Message) ([]byte, error) {
-	return proto.Marshal(msg)
+func (self *JSonParser) Marshal(msg proto.Message) ([]byte, error) {
+	return json.Marshal(msg)
 }

@@ -18,6 +18,7 @@ type ICloseNotifyRecvicer interface {
 
 type IParser interface {
 	ParseAndHandle(proxy *NetProxy, cmdId uint, data []byte) error
+	Marshal(msg proto.Message) ([]byte, error)
 }
 
 var (
@@ -60,7 +61,7 @@ func (self *NetProxy) StartAndWait() {
 }
 
 func (self *NetProxy) Send(cmdId uint, msg proto.Message) error {
-	data, err := proto.Marshal(msg)
+	data, err := self.parser.Marshal(msg)
 	if err != nil {
 		return err
 	}
